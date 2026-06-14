@@ -1,3 +1,4 @@
+from collections import deque
 from typing import Dict, List, Optional, Set
 
 
@@ -9,43 +10,112 @@ class TreeNode:
 
 
 class CreateBinaryTree:
-    def __init__(self) -> None:
-        self.treeMap: Dict[int, List[int | None]] = dict()
+    def usingInOrderPostOrderTraversal(
+        self, inOrder: List[int], postOrder: List[int]
+    ) -> Optional[TreeNode]:
 
-    def createBinaryTree(self, descriptions: List[List[int]]) -> Optional[TreeNode]:
+        def createBinaryTree(start: int, end: int, rootPos: int) -> Optional[TreeNode]:
+            """
+            start: starting index of inOrder traversal
+            end: end index of postOrder traversal
+            rootPos: root position of root of postOrder traversal
+            """
+
+            rootValue = postOrder[rootPos]
+
+            if start == end:
+                return TreeNode(rootValue)
+
+            inOrderRootIndex = -1
+            for i in range(end + 1):
+                if inOrder[i] == rootValue:
+                    inOrderRootIndex = i
+                    break
+
+            root = TreeNode(rootValue)
+
+            root.left = createBinaryTree(
+                start, inOrderRootIndex - 1, rootPos - (end - inOrderRootIndex) - 1
+            )
+            root.right = createBinaryTree(inOrderRootIndex + 1, end, rootPos - 1)
+
+            return root
+
+        n = len(inOrder)
+        return createBinaryTree(0, n - 1, n - 1)
+
+    def usingInOrderPreOrderTraversal(
+        self, inOrder: List[int], preOrder: List[int]
+    ) -> Optional[TreeNode]:
+
+        def createBinaryTree(start: int, end: int, rootPos: int) -> Optional[TreeNode]:
+            """
+            start: starting index of inOrder traversal
+            end: end index of preOrder traversal
+            rootPos: root position of root of preOrder traversal
+            """
+
+            rootValue = preOrder[rootPos]
+
+            if start == end:
+                return TreeNode(rootValue)
+
+            inOrderRootIndex = -1
+            for i in range(end + 1):
+                if inOrder[i] == rootValue:
+                    inOrderRootIndex = i
+                    break
+
+            root = TreeNode(rootValue)
+            root.left = createBinaryTree(start, inOrderRootIndex - 1, rootPos + 1)
+            root.right = createBinaryTree(
+                inOrderRootIndex + 1, end, rootPos + (inOrderRootIndex - start) + 1
+            )
+
+            return root
+
+        n = len(inOrder)
+        return createBinaryTree(0, n - 1, 0)
+
+    def usingList(self, childern: List[List[int]]) -> Optional[TreeNode]:
+        """
+        children: [[rootValue, childValue, isLeftChild]]
+        """
+
         allElements: Set[int] = set()
+        treeMap: Dict[int, List[int | None]] = dict()
 
-        for node in descriptions:
+        for node in childern:
             parent, child, isLeftChild = node
 
             allElements.add(child)
-            if self.treeMap.get(parent, None) is None:
-                self.treeMap[parent] = [None] * 2
+            if treeMap.get(parent, None) is None:
+                treeMap[parent] = [None] * 2
 
-            self.treeMap[parent][isLeftChild ^ 1] = child
+            treeMap[parent][isLeftChild ^ 1] = child
 
-        rootNodeValue = [
-            element for element in self.treeMap if element not in allElements
-        ][0]
+        rootNodeValue = [element for element in treeMap if element not in allElements][
+            0
+        ]
 
-        return self.createTree(rootNodeValue)
+        def createTree(rootValue: int | None) -> Optional[TreeNode]:
+            if rootValue is None:
+                return
 
-    def createTree(self, rootValue: int | None) -> Optional[TreeNode]:
-        if rootValue is None:
-            return
+            node = TreeNode(rootValue)
 
-        node = TreeNode(rootValue)
+            left = right = None
 
-        left = right = None
+            children = treeMap.get(rootValue, None)
+            if children:
+                left, right = children
 
-        children = self.treeMap.get(rootValue, None)
-        if children:
-            left, right = children
+            node.left = createTree(left)
+            node.right = createTree(right)
 
-        node.left = self.createTree(left)
-        node.right = self.createTree(right)
+            return node
 
-        return node
+        return createTree(rootNodeValue)
 
 
 def inOrderTraversal(rootNode: Optional[TreeNode]) -> List:
@@ -151,6 +221,33 @@ def postOrderTraversalIterative(rootNode: Optional[TreeNode]) -> List:
     return postOrderElements
 
 
+def levelOrderTraversal(rootNode: Optional[TreeNode]) -> List:
+    if rootNode is None:
+        return list()
+
+    queue = deque([rootNode])
+
+    levelOrderElements = list()
+
+    while queue:
+        queuelength = len(queue)
+        temp_list = list()
+
+        for _ in range(queuelength):
+            element = queue.popleft()
+            temp_list.append(element.val)
+
+            if element.left is not None:
+                queue.append(element.left)
+
+            if element.right is not None:
+                queue.append(element.right)
+
+        levelOrderElements.append(temp_list)
+
+    return levelOrderElements
+
+
 if __name__ == "__main__":
     descriptions = [
         [1, 2, 1],
@@ -164,12 +261,35 @@ if __name__ == "__main__":
         [10, 12, 0],
     ]
 
-    rootNode = CreateBinaryTree().createBinaryTree(descriptions=descriptions)
-    # print("inOrderTraversal ->", inOrderTraversal(rootNode=rootNode))
-    # print("preOrderTraversal ->", preOrderTraversal(rootNode=rootNode))
-    print("postOrderTraversal ->", postOrderTraversal(rootNode=rootNode))
+    # rootNode = CreateBinaryTree().usingList(childern=descriptions)
+    # assert inOrderTraversal(rootNode) == inOrderTraversalIterative(rootNode), (
+    #     "Issue with InOrderTraversal"
+    # )
+    # assert preOrderTraversal(rootNode) == preOrderTraversalIterative(rootNode), (
+    #     "Issue with PreOrderTraversal"
+    # )
+    # assert postOrderTraversal(rootNode) == postOrderTraversalIterative(rootNode), (
+    #     "Issue with PostOrderTraversal"
+    # )
 
-    # pre_recursive = preOrderTraversal(rootNode=rootNode)
-    # pre_iterative = preOrderTraversalIterative(rootNode=rootNode)
-    # print(pre_iterative, pre_recursive, sep="\n")
-    print(postOrderTraversalIterative(rootNode))
+    # print(levelOrderTraversal(rootNode))
+
+    rootNode = CreateBinaryTree().usingInOrderPostOrderTraversal(
+        inOrder=[6, 4, 7, 2, 5, 1, 10, 3, 12, 11, 13],
+        postOrder=[6, 7, 4, 5, 2, 10, 12, 13, 11, 3, 1],
+    )
+
+    print("InPost")
+    print(inOrderTraversal(rootNode))
+    print(postOrderTraversal(rootNode))
+    print(preOrderTraversal(rootNode))
+
+    rootNode = CreateBinaryTree().usingInOrderPreOrderTraversal(
+        inOrder=[6, 4, 7, 2, 5, 1, 10, 3, 12, 11, 13],
+        preOrder=[1, 2, 4, 6, 7, 5, 3, 10, 11, 12, 13],
+    )
+
+    print("InPre")
+    print(inOrderTraversal(rootNode))
+    print(postOrderTraversal(rootNode))
+    print(preOrderTraversal(rootNode))
