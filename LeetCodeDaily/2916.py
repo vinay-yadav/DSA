@@ -2,9 +2,9 @@
 Create Binary Tree From Descriptions
 """
 
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, cast
 
-from Utilities.tree import inorder
+from Utilities.tree import inOrderTraversal
 
 
 # Definition for a binary tree node.
@@ -63,4 +63,5 @@ if __name__ == "__main__":
 
     for description in descriptions:
         rootNode = Solution().createBinaryTree(description)
-        print(inorder(rootNode))
+        # cast to Any to avoid typing mismatch between local TreeNode and Utilities.tree.TreeNode
+        print(inOrderTraversal(cast(Any, rootNode)))
