@@ -18,14 +18,17 @@ def createLinkedListFromList(elements: List[int]) -> ListNode:
     return head
 
 
-def printLinkedList(head: ListNode) -> None:
+def printLinkedList(head: ListNode, returnList: bool = False) -> Optional[List]:
     curr = head
     linkedlist_val = list()
 
     while curr is not None:
-        linkedlist_val.append(str(curr.val))
+        value = curr.val if returnList else str(curr.val)
+        linkedlist_val.append(value)
         curr = curr.next
 
+    if returnList:
+        return linkedlist_val
     print(" -> ".join(linkedlist_val))
 
 
