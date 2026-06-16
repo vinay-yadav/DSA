@@ -9,8 +9,7 @@ class Solution:
 
         for chr in s:
             if chr == "*":
-                if result != "":
-                    result = result[:-1]
+                result = result[:-1] if result != "" else ""
             elif chr == "#":
                 result += result
             elif chr == "%":
