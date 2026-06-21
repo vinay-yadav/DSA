@@ -7,34 +7,41 @@ from typing import List
 
 class Solution:
     def maxBuilding(self, n: int, restrictions: List[List[int]]) -> int:
+        restrictions.append([1, 0])
+        restrictions.append([n, n - 1])
+        restrictions.sort()
+
         m = len(restrictions)
 
-        arr = [[0, 0] for _ in range(m + 2)]
-
-        for i in range(m):
-            arr[i] = restrictions[i]
-
-        arr[m] = [1, 0]
-        arr[m + 1] = [n, n - 1]
-
-        arr.sort()
-
-        arrLen = len(arr)
-
-        for i in range(arrLen):
-            arr[i][1] = min(arr[i][1], arr[i - 1][1] + arr[i][0] - arr[i - 1][0])
-
-        for i in range(arrLen - 2, -1, -1):
-            arr[i][1] = min(arr[i][1], arr[i + 1][1] + arr[i + 1][0] - arr[i][0])
-
-        maxBuildingHeight = 0
-        for i in range(1, arrLen):
-            peak = (
-                arr[i - 1][1]
-                + (arr[i][0] - arr[i - 1][0] + arr[i][1] - arr[i - 1][1]) // 2
+        """ left pass """
+        for i in range(1, m):
+            distance = restrictions[i][0] - restrictions[i - 1][0]
+            restrictions[i][1] = min(
+                restrictions[i][1], restrictions[i - 1][1] + distance
             )
-            maxBuildingHeight = max(maxBuildingHeight, peak)
-        
+
+        """ right pass """
+        for i in range(m - 2, 0, -1):
+            distance = restrictions[i + 1][0] - restrictions[i][0]
+            restrictions[i][1] = min(
+                restrictions[i][1], restrictions[i + 1][1] + distance
+            )
+
+        """ calculate max """
+        maxBuildingHeight = 0
+        for i in range(1, m):
+            # id1, h1
+            prevPos, prevHeight = restrictions[i - 1][0], restrictions[i - 1][1]
+            """ id2, h2 """
+            currPos, currHeight = restrictions[i][0], restrictions[i][1]
+
+            distance = currPos - prevPos
+            heightDiff = abs(prevHeight - currHeight)
+
+            peek = max(prevHeight, currHeight) + (distance - heightDiff) // 2
+
+            maxBuildingHeight = max(maxBuildingHeight, peek)
+
         return maxBuildingHeight
 
 
