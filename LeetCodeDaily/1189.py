@@ -19,9 +19,6 @@ class Solution:
 
         singleCharFreq = min(freqDict["b"], freqDict["a"], freqDict["n"])
         doubleCharFreq = min(freqDict["l"], freqDict["o"])
-
-        if doubleCharFreq == singleCharFreq * 2:
-            return singleCharFreq
         
         return min(singleCharFreq, doubleCharFreq // 2)
 
