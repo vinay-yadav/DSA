@@ -17,11 +17,11 @@ class Solution:
 
         for num in nums:
             if num == target:
-                validaSubArray += mp.get(cumSum, 0)
+                validaSubArray += mp[cumSum]
                 cumSum += 1
             else:
                 cumSum -= 1
-                validaSubArray -= mp.get(cumSum, 0)
+                validaSubArray -= mp[cumSum]
 
             mp[cumSum] += 1
             ans += validaSubArray
