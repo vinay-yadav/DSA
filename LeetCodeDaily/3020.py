@@ -13,7 +13,8 @@ class Solution:
         for num in nums:
             mp[num] += 1
 
-        if mp[1] % 2:
+        result = 0
+        if mp[1] & 1 == 1:
             result = mp[1]
         else:
             result = mp[1] - 1
@@ -40,7 +41,11 @@ class Solution:
 
 
 if __name__ == "__main__":
-    testCases = [([5, 4, 1, 2, 2], 3), ([1, 3, 2, 4], 1)]
+    testCases = [
+        ([5, 4, 1, 2, 2], 3),
+        ([1, 3, 2, 4], 1),
+        ([14, 14, 196, 196, 38416, 38416], 5),
+    ]
 
     for idx, (*inputs, expected) in enumerate(testCases):
         result = Solution().maximumLength(*inputs)
