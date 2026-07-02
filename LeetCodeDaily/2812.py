@@ -53,7 +53,7 @@ class Solution:
 
         """ Apply Binary Search on SF """
         result = 0
-        left, right = 0, 400  # 400 as given in constraints
+        left, right = 0, max(max(row) for row in distNearestTheif)
 
         while left <= right:
             midSF = left + (right - left) // 2
