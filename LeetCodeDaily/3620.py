@@ -30,7 +30,7 @@ class Solution:
 
         answer = -1
         while left <= right:
-            mid = left + (right - left) // 2
+            mid: int = left + (right - left) // 2
 
             if self.check(mid, n, k, adj):
                 answer = mid
