@@ -7,55 +7,56 @@ import math
 
 class Solution:
     def gcdValues(self, nums: list[int], queries: list[int]) -> list[int]:
-        max_val = max(nums)
+        maxValue = max(nums)
 
-        # freq[x] = how many times x appears in nums
-        freq = [0] * (max_val + 1)
-        for x in nums:
-            freq[x] += 1
+        divisorFreq = [0] * (maxValue + 1)
+        for num in nums:
+            j = 1
+            while j * j <= num:
+                if num % j == 0:
+                    divisorFreq[j] += 1
 
-        # cnt[g] = how many elements are divisible by g
-        cnt = [0] * (max_val + 1)
-        for g in range(1, max_val + 1):
-            for multiple in range(g, max_val + 1, g):
-                cnt[g] += freq[multiple]
+                    if (num // j) != j:
+                        divisorFreq[num // j] += 1
 
-        # exact[g] = number of pairs with gcd exactly g
-        exact = [0] * (max_val + 1)
-        for g in range(max_val, 0, -1):
-            total = cnt[g] * (cnt[g] - 1) // 2  # C(cnt[g], 2)
-            for multiple in range(2 * g, max_val + 1, g):
-                total -= exact[multiple]
-            exact[g] = total
+                j += 1
 
-        # build prefix sums of pair-counts, in ascending order of g
-        prefix = []
-        running = 0
-        gcd_values_sorted = []  # the g's that actually have exact[g] > 0
-        for g in range(1, max_val + 1):
-            if exact[g] > 0:
-                running += exact[g]
-                prefix.append(running)
-                gcd_values_sorted.append(g)
+        pairsWithGcd = [0] * (maxValue + 1)
+        for g in range(maxValue, 0, -1):
+            count = divisorFreq[g]
+            if count < 2:
+                continue
 
-        # manual binary search: first index where prefix[idx] > q
-        def find_index(q):
-            lo, hi = 0, len(prefix) - 1
-            while lo < hi:
-                mid = (lo + hi) // 2
-                if prefix[mid] > q:
-                    hi = mid
+            # nc2
+            pairsWithGcd[g] = (count * (count - 1)) // 2
+
+            # correction
+            for mult in range(2 * g, maxValue + 1, g):
+                pairsWithGcd[g] -= pairsWithGcd[mult]
+
+        prefixCountGcd = [0] * (maxValue + 1)
+        for i in range(1, maxValue + 1):
+            prefixCountGcd[i] = prefixCountGcd[i - 1] + pairsWithGcd[i]
+
+        result = list()
+
+        for idx in queries:
+            left, right = 1, maxValue
+
+            temp = 1
+
+            while left <= right:
+                mid = left + (right - left) // 2
+
+                if prefixCountGcd[mid] > idx:
+                    temp = mid
+                    right = mid - 1
                 else:
-                    lo = mid + 1
-            return lo
+                    left = mid + 1
 
-        # answer each query
-        answer = []
-        for q in queries:
-            idx = find_index(q)
-            answer.append(gcd_values_sorted[idx])
+            result.append(temp)
 
-        return answer
+        return result
 
     def gcdValues1(self, nums: list[int], queries: list[int]) -> list[int]:
         result = list()
@@ -78,6 +79,7 @@ class Solution:
 
 if __name__ == "__main__":
     testCases = [
+        ([5, 10, 4], [0, 1, 2], [1, 2, 5]),
         ([2, 3, 4], [0, 2, 2], [1, 2, 2]),
         ([4, 4, 2, 1], [5, 3, 1, 0], [4, 2, 1, 1]),
         ([2, 2], [0, 0], [2, 2]),

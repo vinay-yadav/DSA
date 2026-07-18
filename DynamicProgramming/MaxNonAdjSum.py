@@ -8,8 +8,8 @@ class Solution:
         n = len(arr)
         self.dp = [-1] * (n + 1)
 
-        # return self.topDown(arr, n - 1)
-        return self.bottomUp(arr)
+        return self.topDown(arr, n - 1)
+        # return self.bottomUp(arr)
 
     def topDown(self, arr, position):
         if position < 0:
