@@ -61,7 +61,7 @@ class Solution:
             for j in range(i + 1, n):
                 result = max(result, tempList[i] * tempList[j])
 
-        return result
+        return result # type: ignore
 
 
 if __name__ == "__main__":
