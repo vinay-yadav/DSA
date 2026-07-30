@@ -6,57 +6,82 @@ Smallest Palindromic Rearrangement II
 class Solution:
     def smallestPalindrome(self, s: str, k: int) -> str:
         n = len(s)
-        half_point = n // 2
+        half_len = n // 2  # only need to decide the first half; second half mirrors it
 
-        t = list(s)
+        result = list(s)
         base = ord("a")
-        count = [0] * 26
+        freq = [0] * 26  # frequency of each letter in the first half
 
-        for i in range(half_point):
-            ch = s[i]
-            idx = ord(ch) - base
-            count[idx] += 1
+        # slots_left tracks how many half-positions are still unfilled
+        slots_left = 0
+        for i in range(half_len):
+            idx = ord(s[i]) - base
+            freq[idx] += 1
+            slots_left += 1
 
-        for i in range(half_point):
-            characterPlaced = False
-            for j in range(26):
-                if count[j] < 1:
+        # Greedily fix each position i, trying letters a -> z (smallest first)
+        for i in range(half_len):
+            placed = False
+
+            for letter in range(26):
+                if freq[letter] < 1:
                     continue
 
-                count[j] -= 1
+                # Tentatively place `letter` at position i
+                freq[letter] -= 1
+                slots_left -= 1
 
-                letters = 0
-                for c in range(26):
-                    letters += count[c]
+                # scratch counter: shrinks as we account for each remaining
+                # letter type while counting arrangements of the rest of the half
+                scratch_slots = slots_left
 
-                ways = 1
+                # Count how many distinct arrangements are possible for the
+                # remaining positions, given the remaining letter frequencies
+                # (capped at k by nCr, since we only care whether it's >= k)
+                arrangements = 1
                 for c in range(26):
-                    if count[c] < 1:
+                    if freq[c] < 1:
                         continue
 
-                    ways *= self.nCr(letters, count[c], k)
-                    letters -= count[c]
+                    arrangements *= self.nCr(scratch_slots, freq[c], k)
+                    scratch_slots -= freq[c]
 
-                    if ways >= k:
+                    if arrangements >= k:
                         break
 
-                if ways >= k:
-                    t[i] = chr(j + base)
-                    characterPlaced = True
+                if arrangements >= k:
+                    # Enough arrangements exist with `letter` fixed here ->
+                    # commit to it and move to the next position
+                    result[i] = chr(letter + base)
+                    placed = True
                     break
 
-                k -= ways
-                count[j] += 1
+                # Not enough arrangements with `letter` here -> skip past
+                # all of them, undo the tentative placement, try next letter
+                k -= arrangements
+                freq[letter] += 1
+                slots_left += 1
 
-            if not characterPlaced:
+            if not placed:
+                # k exceeded the total number of distinct palindromic
+                # permutations available
                 return ""
 
-        for i in range(half_point):
-            t[n - i - 1] = t[i]
+        # Mirror the first half onto the second half
+        for i in range(half_len):
+            result[n - i - 1] = result[i]
 
-        return "".join(t)
+        return "".join(result)
 
-    def nCr(self, n, r, k):
+    def nCr(self, n: int, r: int, k: int) -> int:
+        """
+        Computes C(n, r), capped at k (returns k if the true value would
+        exceed k), to avoid computing enormous factorials unnecessarily.
+        """
+
+        # nCr == nC(n-r)
+        # 5C3 == 5C2
+        # 5C2 == 5C(5-2) = 5C3
         r = min(r, n - r)
 
         result = 1
