@@ -5,7 +5,7 @@ Smallest Divisible Digit Product I
 
 class Solution:
     def smallestNumber(self, n: int, t: int) -> int:
-        for num in range(n, 101):
+        for num in range(n, n + 10):
             if self.get_digits_product(num) % t == 0:
                 return num
 
