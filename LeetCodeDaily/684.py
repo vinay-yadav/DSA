@@ -7,19 +7,11 @@ class Solution:
     def findRedundantConnection(self, edges: list[list[int]]) -> list[int]:
         n = len(edges) + 1
         parent = list(range(n))  # parent[i] = i initially
+        rank = [0] * n
 
         for u, v in edges:
-            pu = self.find_root(u, parent)
-            pv = self.find_root(v, parent)
-
-            if pu == pv:
+            if not self.union(u, v, parent, rank):
                 return [u, v]
-
-            # union by smaller root value — only touch the roots
-            if pu < pv:
-                parent[pv] = pu
-            else:
-                parent[pu] = pv
 
         return []
 
@@ -29,6 +21,23 @@ class Solution:
 
         parent[node] = self.find_root(parent[node], parent)
         return parent[node]
+
+    def union(self, node_x, node_y, parent, rank) -> bool:
+        parent_x = self.find_root(node_x, parent)
+        parent_y = self.find_root(node_y, parent)
+
+        if parent_x == parent_y:
+            return False
+
+        if rank[parent_x] < rank[parent_y]:
+            parent[parent_x] = parent_y
+        elif rank[parent_x] > rank[parent_y]:
+            parent[parent_y] = parent_x
+        else:
+            parent[parent_x] = parent_y
+            rank[parent_y] += 1
+
+        return True
 
 
 if __name__ == "__main__":
