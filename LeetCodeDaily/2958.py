@@ -10,6 +10,23 @@ class Solution:
         n = len(nums)
         freq = defaultdict(int)
 
+        i = j = longest_subarray = 0
+        while j < n:
+            freq[nums[j]] += 1
+
+            while i < j and freq[nums[j]] > k:
+                freq[nums[i]] -= 1
+                i += 1
+
+            longest_subarray = max(longest_subarray, j - i + 1)
+            j += 1
+
+        return longest_subarray
+
+    def maxSubarrayLength1(self, nums: list[int], k: int) -> int:
+        n = len(nums)
+        freq = defaultdict(int)
+
         longest_subarray = 0
 
         i = j = 0
