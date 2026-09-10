@@ -1,5 +1,5 @@
 from collections import deque
-from typing import Dict, List, Optional, Set
+from typing import List, Optional
 
 
 class TreeNode:
@@ -10,6 +10,36 @@ class TreeNode:
 
 
 class CreateBinaryTree:
+    def usingList(self, nodes: list[int | None]) -> TreeNode | None:
+        if not nodes or nodes[0] is None:
+            return None
+
+        root = TreeNode(nodes[0])
+        queue = deque([root])
+        idx = 1
+        n = len(nodes)
+
+        while queue and idx < n:
+            node = queue.popleft()
+
+            # left child
+            if idx < n:
+                left_value = nodes[idx]
+                if left_value is not None:
+                    node.left = TreeNode(left_value)
+                    queue.append(node.left)
+                idx += 1
+
+            # right child
+            if idx < n:
+                right_value = nodes[idx]
+                if right_value is not None:
+                    node.right = TreeNode(right_value)
+                    queue.append(node.right)
+                idx += 1
+
+        return root
+
     def usingInOrderPostOrderTraversal(
         self, inOrder: List[int], postOrder: List[int]
     ) -> Optional[TreeNode]:
@@ -77,45 +107,45 @@ class CreateBinaryTree:
         n = len(inOrder)
         return createBinaryTree(0, n - 1, 0)
 
-    def usingList(self, childern: List[List[int]]) -> Optional[TreeNode]:
-        """
-        children: [[rootValue, childValue, isLeftChild]]
-        """
+    # def usingList(self, childern: List[List[int]]) -> Optional[TreeNode]:
+    #     """
+    #     children: [[rootValue, childValue, isLeftChild]]
+    #     """
 
-        allElements: Set[int] = set()
-        treeMap: Dict[int, List[int | None]] = dict()
+    #     allElements: Set[int] = set()
+    #     treeMap: Dict[int, List[int | None]] = dict()
 
-        for node in childern:
-            parent, child, isLeftChild = node
+    #     for node in childern:
+    #         parent, child, isLeftChild = node
 
-            allElements.add(child)
-            if treeMap.get(parent, None) is None:
-                treeMap[parent] = [None] * 2
+    #         allElements.add(child)
+    #         if treeMap.get(parent, None) is None:
+    #             treeMap[parent] = [None] * 2
 
-            treeMap[parent][isLeftChild ^ 1] = child
+    #         treeMap[parent][isLeftChild ^ 1] = child
 
-        rootNodeValue = [element for element in treeMap if element not in allElements][
-            0
-        ]
+    #     rootNodeValue = [element for element in treeMap if element not in allElements][
+    #         0
+    #     ]
 
-        def createTree(rootValue: int | None) -> Optional[TreeNode]:
-            if rootValue is None:
-                return
+    #     def createTree(rootValue: int | None) -> Optional[TreeNode]:
+    #         if rootValue is None:
+    #             return
 
-            node = TreeNode(rootValue)
+    #         node = TreeNode(rootValue)
 
-            left = right = None
+    #         left = right = None
 
-            children = treeMap.get(rootValue, None)
-            if children:
-                left, right = children
+    #         children = treeMap.get(rootValue, None)
+    #         if children:
+    #             left, right = children
 
-            node.left = createTree(left)
-            node.right = createTree(right)
+    #         node.left = createTree(left)
+    #         node.right = createTree(right)
 
-            return node
+    #         return node
 
-        return createTree(rootNodeValue)
+    #     return createTree(rootNodeValue)
 
 
 def inOrderTraversal(rootNode: Optional[TreeNode]) -> List:
