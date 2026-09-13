@@ -1,0 +1,22 @@
+"""
+
+"""
+
+from collections import deque, defaultdict, Counter
+import heapq
+
+
+class Solution:
+    def {funcName}
+        ...
+
+
+if __name__ == "__main__":
+    testCases = [
+        # (*inputs, expected),
+    ]
+
+    for idx, (*inputs, expected) in enumerate(testCases):
+        result = Solution().{methodName}(*inputs)
+        status = "Pass" if result == expected else "Fail"
+        print(f"Input {{idx}}: [{{status}} -> {{result}}]")
