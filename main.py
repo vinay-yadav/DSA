@@ -12,7 +12,9 @@ def createNewFile(filename, funcName):
     with open(templatePath, "r", encoding="utf-8") as templateFile:
         template = templateFile.read()
 
-    fileContent = template.format(funcName=funcName, methodName=methodName)
+    fileContent = template.replace("{funcName}", funcName).replace(
+        "{methodName}", methodName
+    )
 
     filename = filename if "\\" in filename else f"LeetCodeDaily/{filename}"
     filepath = f"{filename}.py"
