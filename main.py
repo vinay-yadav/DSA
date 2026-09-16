@@ -2,7 +2,7 @@ import os
 
 
 def createNewFile(filename, funcName):
-    funcName = funcName.replace("List", "list")
+    funcName = funcName.replace("def ", "").replace("List", "list")
     if not funcName.rstrip().endswith(":"):
         funcName = funcName.rstrip() + ":"
 
