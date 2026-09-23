@@ -4,87 +4,97 @@ Find X Value of Array II
 
 
 class Node:
-    __slots__ = ("cnt", "prod")
+    __slots__ = ("count", "product")
 
-    def __init__(self, k: int) -> None:
-        self.cnt = [0] * k
-        self.prod = 0
+    def __init__(self, k) -> None:
+        self.count = [0] * k
+        self.product = 0
 
 
 class SegmentTree:
-    def __init__(self, nums: list[int], k: int) -> None:
+    def __init__(self, nums, k) -> None:
         self.k = k
-        self.n = len(nums)
-        self.segTree = [Node(k) for _ in range(4 * self.n)]
-        self.build(0, 0, self.n - 1, nums)
+        self.nums = nums
+        self.size = len(nums)
+        self.segTree = [Node(k) for _ in range(4 * self.size)]
 
-    def build(self, i: int, l: int, r: int, nums: list[int]) -> None:
-        if l == r:
-            self.leafNode(i, nums[l])
+        self.buildSegmentTree(0, 0, self.size - 1)
+
+    def buildSegmentTree(self, idx, low, high):
+        if low == high:
+            self.leafNode(idx, self.nums[low])
             return
 
-        mid = l + (r - l) // 2
-        self.build(2 * i + 1, l, mid, nums)
-        self.build(2 * i + 2, mid + 1, r, nums)
-        self.segTree[i] = self.mergeNodes(
-            self.segTree[2 * i + 1], self.segTree[2 * i + 2]
-        )
+        mid = low + (high - low) // 2
+        left, right = self.getChildIndexes(idx)
 
-    def leafNode(self, i: int, value: int) -> None:
-        node = self.segTree[i]
+        self.buildSegmentTree(left, low, mid)
+        self.buildSegmentTree(right, mid + 1, high)
+
+        self.segTree[idx] = self.mergeNodes(self.segTree[left], self.segTree[right])
+
+    def leafNode(self, idx, value) -> None:
         for x in range(self.k):
-            node.cnt[x] = 0
+            self.segTree[idx].count[x] = 0
 
-        r = value % self.k
-        node.cnt[r] = 1
-        node.prod = r
+        remainder = value % self.k
+        self.segTree[idx].product = remainder
+        self.segTree[idx].count[remainder] = 1
 
-    def mergeNodes(self, left: Node, right: Node) -> Node:
+    def mergeNodes(self, leftNode: Node, rightNode: Node) -> Node:
         result = Node(self.k)
-        result.prod = (left.prod * right.prod) % self.k
+        result.product = (leftNode.product * rightNode.product) % self.k
+        result.count = leftNode.count[:]
 
         for x in range(self.k):
-            result.cnt[x] = left.cnt[x]
-        for x in range(self.k):
-            newRem = (left.prod * x) % self.k
-            result.cnt[newRem] += right.cnt[x]
+            newRemainder = (leftNode.product * x) % self.k
+            result.count[newRemainder] += rightNode.count[x]
 
         return result
 
-    def update(self, index: int, value: int) -> None:
-        self.segTreeUpdate(0, 0, self.n - 1, index, value)
+    def update(self, idx, value):
+        self.updateSegmentTree(0, 0, self.size - 1, idx, value)
 
-    def segTreeUpdate(self, i: int, l: int, r: int, index: int, value: int) -> None:
-        if l == r:
+    def updateSegmentTree(self, i, low, high, idx, value):
+        if low == high:
             self.leafNode(i, value)
             return
 
-        mid = l + (r - l) // 2
-        if index <= mid:
-            self.segTreeUpdate(2 * i + 1, l, mid, index, value)
+        mid = low + (high - low) // 2
+        left, right = self.getChildIndexes(i)
+
+        if idx <= mid:
+            self.updateSegmentTree(left, low, mid, idx, value)
         else:
-            self.segTreeUpdate(2 * i + 2, mid + 1, r, index, value)
+            self.updateSegmentTree(right, mid + 1, high, idx, value)
 
-        self.segTree[i] = self.mergeNodes(
-            self.segTree[2 * i + 1], self.segTree[2 * i + 2]
-        )
+        self.segTree[i] = self.mergeNodes(self.segTree[left], self.segTree[right])
 
-    def query(self, start: int, end: int) -> Node:
-        return self.segTreeQuery(start, end, 0, 0, self.n - 1)
+    def query(self, start, end) -> Node:
+        return self.querySegmentTree(start, end, 0, 0, self.size - 1)
 
-    def segTreeQuery(self, start: int, end: int, i: int, l: int, r: int) -> Node:
-        if l >= start and r <= end:
-            return self.segTree[i]
+    def querySegmentTree(self, start, end, idx, low, high) -> Node:
+        if low >= start and high <= end:
+            return self.segTree[idx]
 
-        mid = l + (r - l) // 2
+        mid = low + (high - low) // 2
+        left, right = self.getChildIndexes(idx)
+
         if end <= mid:
-            return self.segTreeQuery(start, end, 2 * i + 1, l, mid)
-        if start > mid:
-            return self.segTreeQuery(start, end, 2 * i + 2, mid + 1, r)
+            return self.querySegmentTree(start, end, left, low, mid)
 
-        left = self.segTreeQuery(start, end, 2 * i + 1, l, mid)
-        right = self.segTreeQuery(start, end, 2 * i + 2, mid + 1, r)
-        return self.mergeNodes(left, right)
+        if start > mid:
+            return self.querySegmentTree(start, end, right, mid + 1, high)
+
+        leftResult = self.querySegmentTree(start, end, left, low, mid)
+        rightResult = self.querySegmentTree(start, end, right, mid + 1, high)
+
+        return self.mergeNodes(leftResult, rightResult)
+
+    @staticmethod
+    def getChildIndexes(idx: int) -> tuple:
+        index = 2 * idx
+        return index + 1, index + 2
 
 
 class Solution:
@@ -92,13 +102,14 @@ class Solution:
         self, nums: list[int], k: int, queries: list[list[int]]
     ) -> list[int]:
         n = len(nums)
-        segTree = SegmentTree(nums, k)
         result = []
+
+        segTree = SegmentTree(nums, k)
 
         for index, value, start, x in queries:
             segTree.update(index, value)
-            node = segTree.query(start, n - 1)
-            result.append(node.cnt[x])
+            resultNode = segTree.query(start, n - 1)
+            result.append(resultNode.count[x])
 
         return result
 
