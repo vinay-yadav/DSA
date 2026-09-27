@@ -11,4 +11,5 @@ wheels/
 
 .vscode
 .ruff_cache
+contest.py
 UnfinishedProblems/
