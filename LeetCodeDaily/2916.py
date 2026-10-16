@@ -1,67 +1,72 @@
 """
-Create Binary Tree From Descriptions
+Subarrays Distinct Element Sum of Squares II
 """
-
-from typing import Any, Dict, List, Optional, Set, cast
-
-from Utilities.tree import inOrderTraversal
-
-
-# Definition for a binary tree node.
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
 
 
 class Solution:
-    def __init__(self) -> None:
-        self.treeMap: Dict[int, List[int | None]] = dict()
+    MOD = 1_000_000_007
 
-    def createBinaryTree(self, descriptions: List[List[int]]) -> Optional[TreeNode]:
-        allElements: Set[int] = set()
+    def sumCounts(self, nums: list[int]) -> int:
+        n = len(nums)
 
-        for node in descriptions:
-            parent, child, isLeftChild = node
+        sqSumSegTree = [0] * 4 * n
+        sumSegTree = [0] * 4 * n
+        lazyTree = [0] * 4 * n
 
-            allElements.add(child)
-            if self.treeMap.get(parent, None) is None:
-                self.treeMap[parent] = [None] * 2
+        def lazyAddition(idx, low, high, val):
+            cnt = high - low + 1
+            sqSumSegTree[idx] += 2 * val * sumSegTree[idx] + cnt * val * val
+            sumSegTree[idx] += cnt * val
 
-            self.treeMap[parent][isLeftChild ^ 1] = child
+        def updateRange(start, end, idx, low, high, val):
+            if lazyTree[idx] != 0:
+                lazyAddition(idx, low, high, lazyTree[idx])
+                if low != high:
+                    lazyTree[2 * idx + 1] += lazyTree[idx]
+                    lazyTree[2 * idx + 2] += lazyTree[idx]
+                lazyTree[idx] = 0  # no return here
 
-        rootNodeValue = [
-            element for element in self.treeMap if element not in allElements
-        ][0]
+            if low > end or high < start:
+                return
 
-        return self.createTree(rootNodeValue)
+            if start <= low and high <= end:
+                lazyAddition(idx, low, high, val)
+                if low != high:
+                    lazyTree[2 * idx + 1] += val
+                    lazyTree[2 * idx + 2] += val
+                return
 
-    def createTree(self, rootValue: int | None) -> Optional[TreeNode]:
-        if rootValue is None:
-            return
+            mid = (low + high) // 2
+            updateRange(start, end, 2 * idx + 1, low, mid, val)
+            updateRange(start, end, 2 * idx + 2, mid + 1, high, val)
 
-        node = TreeNode(rootValue)
+            sumSegTree[idx] = sumSegTree[2 * idx + 1] + sumSegTree[2 * idx + 2]
+            sqSumSegTree[idx] = sqSumSegTree[2 * idx + 1] + sqSumSegTree[2 * idx + 2]
 
-        left = right = None
+        lastSeenIdx = [-1] * 1_000_01
+        result = 0
 
-        children = self.treeMap.get(rootValue, None)
-        if children:
-            left, right = children
+        for i in range(n):
+            num = nums[i]
 
-        node.left = self.createTree(left)
-        node.right = self.createTree(right)
+            start = lastSeenIdx[num] + 1
+            end = i
 
-        return node
+            updateRange(start, end, 0, 0, n - 1, 1)
+            result = (result + sqSumSegTree[0]) % self.MOD
+
+            lastSeenIdx[num] = i
+
+        return result
 
 
 if __name__ == "__main__":
-    descriptions = [
-        [[20, 15, 1], [20, 17, 0], [50, 20, 1], [50, 80, 0], [80, 19, 1]],
-        [[1, 2, 1], [2, 3, 0], [3, 4, 1]],
+    testCases = [
+        ([1, 2, 1], 15),
+        ([1, 1], 3),
     ]
 
-    for description in descriptions:
-        rootNode = Solution().createBinaryTree(description)
-        # cast to Any to avoid typing mismatch between local TreeNode and Utilities.tree.TreeNode
-        print(inOrderTraversal(cast(Any, rootNode)))
+    for idx, (*inputs, expected) in enumerate(testCases):
+        result = Solution().sumCounts(*inputs)  # type: ignore
+        status = "Pass" if result == expected else "Fail"
+        print(f"Input {idx}: {{{status} -> {result}}}")
