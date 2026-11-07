@@ -2,8 +2,8 @@
 
 """
 
-from collections import deque, defaultdict, Counter
 import heapq
+from collections import deque, defaultdict, Counter
 
 
 class Solution:
